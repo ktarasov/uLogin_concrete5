@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<schema version="0.3">
+	<table name="btULogin">
+		<field name="bID" type="I">
+			<key />
+			<unsigned />
+		</field>
+		<field name="ctl_type" type="I">
+			<unsigned />
+			<default value="0" />
+		</field>
+		<field name="register_user" type="I">
+			<unsigned />
+			<default value="0" />
+		</field>
+		<field name="login_user" type="I">
+			<unsigned />
+			<default value="1" />
+		</field>
+		<field name="use_hidden" type="I">
+			<unsigned />
+			<default value="1" />
+		</field>
+		<field name="providers" type="X2" />
+		<field name="hidden" type="X2" />
+	</table>
+</schema>
