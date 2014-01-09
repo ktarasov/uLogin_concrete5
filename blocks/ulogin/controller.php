@@ -78,7 +78,7 @@ class UloginBlockController extends BlockController {
     $db = Loader::db();
     $uid = $db->GetOne('SELECT uID FROM Users WHERE `uEmail`=?', array($info['email']));
 
-    // если его нет, то 
+    // если его нет, то
     if (is_null($uid)) {
       // проверим уникальность имени
       $count = 0;
@@ -103,7 +103,12 @@ class UloginBlockController extends BlockController {
       );
 
       if($ui = UserInfo::add($uData)) {
-        // @todo: добавить отправку письма с паролем пользователю
+        // отправка письма с паролем пользователю
+        $this->sendUserMail($ui, $uData);
+        // отправим писемку админу
+        $this->sendAdminMail($ui, $uData);
+      } else {
+        Log::addEntry("Ошибка при регистрации пользователя:\n" . print_r($uData, true), 'uLogin');
       }
     } else {
       $ui = UserInfo::getByID($uid);
@@ -111,7 +116,7 @@ class UloginBlockController extends BlockController {
 
     return $ui;
   }
-  
+
   private function uploadAvatar($ui, $sinfo) {
     if($ui instanceof UserInfo && $sinfo['photo_big']) {
       $avatar_data = file_get_contents($sinfo['photo_big']);
@@ -156,6 +161,75 @@ class UloginBlockController extends BlockController {
       'googleplus' => 'Google+',
       'dudu' => 'dudu'
     );
+  }
+
+  private function sendAdminMail($ui, $uData) {
+    if (REGISTER_NOTIFICATION) { //do we notify someone if a new user is added?
+      $mh = Loader::helper('mail');
+      $adminUser = UserInfo::getByID(USER_SUPER_ID);
+
+      if(EMAIL_ADDRESS_REGISTER_NOTIFICATION) {
+        $mh->to(EMAIL_ADDRESS_REGISTER_NOTIFICATION);
+      } else {
+        if (is_object($adminUser))
+          $mh->to($adminUser->getUserEmail());
+      }
+
+      $mh->addParameter('uID',    $ui->getUserID());
+      $mh->addParameter('user',   $ui);
+      $mh->addParameter('uName',  $uData['uName']);
+      $mh->addParameter('uEmail', $uData['uEmail']);
+      $attribs = UserAttributeKey::getRegistrationList();
+      $attribValues = array();
+      foreach($attribs as $ak) {
+        $attribValues[] = $ak->getAttributeKeyDisplayName('text') . ': ' . $ui->getAttribute($ak->getAttributeKeyHandle(), 'display');
+      }
+      $mh->addParameter('attribs', $attribValues);
+
+      if (defined('EMAIL_ADDRESS_REGISTER_NOTIFICATION_FROM')) {
+        $mh->from(EMAIL_ADDRESS_REGISTER_NOTIFICATION_FROM,  t('Website Registration Notification'));
+      } else {
+        if (is_object($adminUser))
+          $mh->from($adminUser->getUserEmail(),  t('Website Registration Notification'));
+      }
+
+      if(REGISTRATION_TYPE == 'manual_approve') {
+        $mh->load('user_register_approval_required');
+      } else {
+        $mh->load('user_register');
+      }
+
+      $mh->sendMail();
+    }
+  }
+
+  private function sendUserMail($ui, $uData) {
+    $mh = Loader::helper('mail');
+    $vh = Loader::helper('validation/strings');
+    $adminUser = UserInfo::getByID(USER_SUPER_ID);
+
+    if($vh->email($uData['uEmail'])) {
+      $mh->to($uData['uEmail'], $uData['uName']);
+
+      $mh->addParameter('uID',    $ui->getUserID());
+      $mh->addParameter('user',   $ui);
+      $mh->addParameter('uName',  $uData['uName']);
+      $mh->addParameter('uEmail', $uData['uEmail']);
+      $mh->addParameter('uPass',  $uData['uPassword']);
+
+      $attribs = UserAttributeKey::getRegistrationList();
+      $attribValues = array();
+      foreach($attribs as $ak) {
+        $attribValues[] = $ak->getAttributeKeyDisplayName('text') . ': ' . $ui->getAttribute($ak->getAttributeKeyHandle(), 'display');
+      }
+      $mh->addParameter('attribs', $attribValues);
+
+      if (is_object($adminUser))
+        $mh->from($adminUser->getUserEmail(),  t('Website Registration Notification'));
+
+      $mh->load('user_registered', 'uLogin');
+      $mh->sendMail();
+    }
   }
 
 }

@@ -8,10 +8,10 @@
         }
       });
     });
-    
-    if($('#ccm-uloginPane-add #register_user1')[0].checked) $('#login_user_label').hide();
+
+    if($('#ccm-uloginPane-add #register_user1').prop('checked')) $('#login_user_label').hide();
   }
-  
+
   uloginSetUseOtherHandler = function() {
     $('#use_hidden').change(function(e) {
       if(this.checked) {
@@ -21,7 +21,7 @@
       }
     });
   }
-  
+
   uloginHideSelectedBox = function() {
     $('#ccm-uloginPane-default .provider_checkbox').each(function(num, el) {
       var el_other_label = $('#ccm-uloginPane-other label.' + $(el).val());
@@ -36,7 +36,7 @@
       }
     });
   }
-  
+
   uloginSetAllChecks = function() {
     $('#hidden_check_all').change(function(e) {
       var check_status = this.checked;
@@ -46,41 +46,41 @@
         } else {
           el.checked = false;
         }
-      }); 
+      });
     });
   }
-  
+
   uloginSetOtherChange = function() {
-    $('#ccm-uloginPane-other .provider_checkbox').each(function(num, el) { 
-      $(el).change(function(e) { 
+    $('#ccm-uloginPane-other .provider_checkbox').each(function(num, el) {
+      $(el).change(function(e) {
         debugger;
-        var all_el = $('#hidden_check_all')[0];
+        var all_el = $('#hidden_check_all');
         if(this.checked) {
           var allchk = true;
           $('#ccm-uloginPane-other .provider_checkbox').each(function(num, el) {
             if($(el).css('display') != 'none') {
               allchk = (allchk && el.checked);
-            }            
+            }
           });
-          all_el.checked = allchk;
+          all_el.prop('checked', allchk);
         } else {
-          all_el.checked = false;
+          all_el.prop('checked', false);
         }
-      }); 
-    }); 
+      });
+    });
   }
 
 	uloginTabSetup = function() {
-		$('ul#ccm-ulogin-tabs li a').each( function(num,el){ 
+		$('ul#ccm-ulogin-tabs li a').each( function(num,el){
 			el.onclick=function(){
 				var pane=this.id.replace('ccm-ulogin-tab-','');
 				uloginShowPane(pane);
 			}
 		});
-    
-    if(!$('#use_hidden')[0].checked) $('#ccm-ulogin-tab-other').hide();
+
+    if(!$('#use_hidden').prop('checked')) $('#ccm-ulogin-tab-other').hide();
 	}
-	
+
 	uloginShowPane = function (pane){
 		$('ul#ccm-ulogin-tabs li').each(function(num,el){ $(el).removeClass('active') });
 		$(document.getElementById('ccm-ulogin-tab-'+pane).parentNode).addClass('active');
@@ -88,8 +88,8 @@
 		$('#ccm-uloginPane-'+pane).css('display','block');
     if(pane == 'other') uloginHideSelectedBox();
 	}
-	
-	$(function() {	
+
+	$(function() {
 		uloginTabSetup();
     uloginSetAllChecks();
     uloginSetOtherChange();

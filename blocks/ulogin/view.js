@@ -4,6 +4,8 @@ function ulogin_fillfields(token){
     if(!obj.error) {
       if(console) console.dir(obj);
       // заполнить поля формы регистрации
+      if($('#uName').length) $('#uName').val(obj.first_name + ' ' + obj.last_name);
+      if($('#uEmail').length) $('#uEmail').val(obj.email);
     } else {
       alert('Ошибка регистрации через выбранную социальную сеть: ' + obj.error);
     }
